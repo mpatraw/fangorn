@@ -2,6 +2,8 @@
 local Ent = {}
 Ent.MT = {__index = Ent}
 
+--- Creates a new entity.
+-- @return An Ent.
 function Ent.new()
     return setmetatable({
         _data = {},
@@ -9,6 +11,12 @@ function Ent.new()
     }, Ent.MT)
 end
 
+--- Grow a Branch on an Ent.
+-- This also checks and tries to add any dependencies of the added
+-- branch and will add this entity to the Branch's array.
+-- @param branch The Branch to grow.
+-- @param data Optional data to populate, this must exist
+--             or the Branch must have a default generator.
 function Ent:grow(branch, data)
     assert(not self._data[branch], "cannot grow, ent already has branch " .. branch.name)
     local d = data or (branch and branch.default())
@@ -24,6 +32,10 @@ function Ent:grow(branch, data)
     branch:_add(self)
 end
 
+--- Trim a Branch off an Ent.
+-- @param branch The Branch to remove.
+-- @param purge Optionally will purge any dependencies of
+--              the branch that have no other dependents.
 function Ent:trim(branch, purge)
     -- Probably can scan data for ents and kill them.
     assert(self:get(branch), "cannot trim, ent does not have branch")
@@ -50,6 +62,8 @@ function Ent:trim(branch, purge)
     branch:_remove(self)
 end
 
+--- Kill an ent.
+-- This completely removes all Branches from the Ent.
 function Ent:kill()
     local n = next(self._data, nil)
     while n do
@@ -58,15 +72,22 @@ function Ent:kill()
     end
 end
 
+--- Get data associated with a Branch.
+-- @param branch The Branch.
 function Ent:get(branch)
     return self._data[branch]
 end
 
+--- Set data associated with a Branch.
+-- @param branch The Branch.
+-- @param to What to set it to. Cannot be nil.
 function Ent:set(branch, to)
     assert(to, "cannot set to nil")
     self._data[branch] = to
 end
 
+--- Gets a list of branches associated with this Ent.
+-- @return A list of Branch objects.
 function Ent:branches()
     local branches = {}
     for branch in pairs(self._data) do
@@ -107,7 +128,7 @@ function Branch:_remove(ent)
     end
 end
 
-function Branch:_commit()
+function Branch:sync()
     for e in pairs(self._to_add) do
         if not self._ents[e] then
             table.insert(self._ents_array, e)
@@ -127,13 +148,17 @@ function Branch:_commit()
     self._to_remove = {}
 end
 
-function Branch:ents()
-    self:_commit()
+function Branch:ents(nosync)
+    if not nosync then
+        self:sync()
+    end
     return self._ents_array
 end
 
-function Branch:iter()
-    self:_commit()
+function Branch:iter(nosync)
+    if not nosync then
+        self:sync()
+    end
     local idx = 0
     local function n()
         idx = idx + 1
@@ -326,5 +351,8 @@ end
 
 return {
     Ent = Ent,
-    Branch = Branch
+    Branch = Branch,
+    _VERSION = 0.2,
+    _DESCRIPTION = "Lua ECS inspired by froggy",
+    _AUTHOR = "Michael Patraw <michaelpatraw@gmail.com>",
 }
