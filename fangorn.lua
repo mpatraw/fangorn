@@ -117,15 +117,17 @@ end
 
 function Branch:_add(ent)
     assert(ent:get(self), "cannot add, ent does not have branch " .. self.name)
+    if self._to_remove[ent] then
+        self._to_remove[ent] = nil
+    end
     self._to_add[ent] = true
 end
 
 function Branch:_remove(ent)
     if self._to_add[ent] then
         self._to_add[ent] = nil
-    else
-        self._to_remove[ent] = true
     end
+    self._to_remove[ent] = true
 end
 
 function Branch:sync()
