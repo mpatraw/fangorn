@@ -15,7 +15,7 @@ local fangorn = require("fangorn")
 
 ## Usage
 
-Fangorn has two objects: **Ent** and **Branch**. An *Ent** (or entity) is a bag of components. Unlike traditional ECSs, the entity owns its components. When you create an **Ent** it is empty, but you can grow **Branches** of components. These branches may have dependencies on other branches and will ensure that they are present in the **Ent**. **Branches** also maintain a contingent array of entities that have the component.
+To track ents, you need a forest.
 
 ### API
 
